@@ -17,7 +17,9 @@ class LeaveTypeController extends Controller
      */
     public function index(): Response
     {
-        $leaveTypes = LeaveType::latest()->get();
+        $leaveTypes = LeaveType::withCount('leaveRequests')
+            ->latest()
+            ->get();
 
         return Inertia::render('LeaveTypes/Index', [
             'leaveTypes' => $leaveTypes,
@@ -85,9 +87,18 @@ class LeaveTypeController extends Controller
      */
     public function destroy(LeaveType $leaveType): RedirectResponse
     {
-        $leaveType->update(['is_active' => false]);
+        $this->authorize('delete', $leaveType);
+
+        // Check if there are any leave requests with this type
+        $leaveRequestsCount = $leaveType->leaveRequests()->count();
+        if ($leaveRequestsCount > 0) {
+            return redirect()->route('leave-types.index')
+                ->with('error', 'Cannot delete leave type. There are ' . $leaveRequestsCount . ' leave request(s) associated with this type.');
+        }
+
+        $leaveType->delete();
 
         return redirect()->route('leave-types.index')
-            ->with('success', 'Leave type disabled successfully.');
+            ->with('success', 'Leave type deleted successfully.');
     }
 }

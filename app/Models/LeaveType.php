@@ -43,4 +43,21 @@ class LeaveType extends Model
     {
         return $this->hasMany(LeaveBalance::class);
     }
+
+    /**
+     * Check if this leave type can be deleted
+     * Can only be deleted if there are no leave requests associated with it
+     */
+    public function canBeDeleted(): bool
+    {
+        return $this->leaveRequests()->count() === 0;
+    }
+
+    /**
+     * Get the count of leave requests for this type
+     */
+    public function getLeaveRequestsCountAttribute(): int
+    {
+        return $this->leaveRequests()->count();
+    }
 }
