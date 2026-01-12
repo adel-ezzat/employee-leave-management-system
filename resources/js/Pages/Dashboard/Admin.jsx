@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
+import StatsCard from '@/Components/StatsCard';
 import { formatDateRange } from '@/Utils/dateFormatter';
 
 export default function AdminDashboard({ stats, recentRequests, myLeaveRequests }) {
@@ -17,39 +18,12 @@ export default function AdminDashboard({ stats, recentRequests, myLeaveRequests 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     {/* Stats Cards */}
-                    <div className="grid grid-cols-1 gap-6 mb-6 md:grid-cols-4">
-                        <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
-                            <div className="p-6">
-                                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Teams</div>
-                                <div className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-100">
-                                    {stats.total_teams}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
-                            <div className="p-6">
-                                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Employees</div>
-                                <div className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-100">
-                                    {stats.total_employees}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
-                            <div className="p-6">
-                                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Requests</div>
-                                <div className="mt-2 text-3xl font-semibold text-yellow-600 dark:text-yellow-400">
-                                    {stats.pending_requests}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
-                            <div className="p-6">
-                                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Approved Requests</div>
-                                <div className="mt-2 text-3xl font-semibold text-green-600 dark:text-green-400">
-                                    {stats.approved_requests}
-                                </div>
-                            </div>
-                        </div>
+                    <div className="grid grid-cols-1 gap-6 mb-6 md:grid-cols-5">
+                        <StatsCard label="Total Teams" value={stats.total_teams} color="gray" />
+                        <StatsCard label="Total Employees" value={stats.total_employees} color="gray" />
+                        <StatsCard label="Pending Requests" value={stats.pending_requests} color="yellow" />
+                        <StatsCard label="Approved Requests" value={stats.approved_requests} color="green" />
+                        <StatsCard label="Rejected Requests" value={stats.rejected_requests} color="red" />
                     </div>
 
                     {/* Quick Actions */}

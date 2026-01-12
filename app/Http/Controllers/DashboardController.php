@@ -38,6 +38,7 @@ class DashboardController extends Controller
             'total_employees' => \App\Models\User::where('role', 'employee')->count(),
             'pending_requests' => LeaveRequest::where('status', 'pending')->count(),
             'approved_requests' => LeaveRequest::where('status', 'approved')->count(),
+            'rejected_requests' => LeaveRequest::where('status', 'rejected')->count(),
         ];
 
         $recentRequests = LeaveRequest::with(['user.team', 'leaveType'])
@@ -147,8 +148,19 @@ class DashboardController extends Controller
             ->latest()
             ->get();
 
+        // Calculate stats for manager dashboard
+        $stats = [
+            'total_employees' => \App\Models\User::where('team_id', $teamId)
+                ->where('role', 'employee')
+                ->count(),
+            'pending_requests' => $pendingRequests->count(),
+            'approved_requests' => $approvedRequests->count(),
+            'rejected_requests' => $rejectedRequests->count(),
+        ];
+
         return Inertia::render('Dashboard/Manager', [
             'team' => $team,
+            'stats' => $stats,
             'pendingRequests' => $pendingRequests,
             'approvedRequests' => $approvedRequests,
             'rejectedRequests' => $rejectedRequests,
@@ -210,7 +222,15 @@ class DashboardController extends Controller
             }
         });
 
+        // Calculate stats for employee dashboard
+        $stats = [
+            'pending_requests' => $leaveRequests->where('status', 'pending')->count(),
+            'approved_requests' => $leaveRequests->where('status', 'approved')->count(),
+            'rejected_requests' => $leaveRequests->where('status', 'rejected')->count(),
+        ];
+
         return Inertia::render('Dashboard/Employee', [
+            'stats' => $stats,
             'leaveRequests' => $leaveRequests,
             'leaveBalances' => $leaveBalances,
         ]);

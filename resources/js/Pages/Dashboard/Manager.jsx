@@ -1,9 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
+import StatsCard from '@/Components/StatsCard';
 import { formatDate, formatDateRange } from '@/Utils/dateFormatter';
 
-export default function ManagerDashboard({ team, pendingRequests, approvedRequests, rejectedRequests, onLeaveToday, onLeaveNextWeek, leaveBalances, myLeaveRequests }) {
+export default function ManagerDashboard({ team, stats, pendingRequests, approvedRequests, rejectedRequests, onLeaveToday, onLeaveNextWeek, leaveBalances, myLeaveRequests }) {
     return (
         <AuthenticatedLayout
             header={
@@ -16,6 +17,14 @@ export default function ManagerDashboard({ team, pendingRequests, approvedReques
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-1 gap-6 mb-6 md:grid-cols-4">
+                        <StatsCard label="Total Employees" value={stats?.total_employees} color="gray" />
+                        <StatsCard label="Pending Requests" value={stats?.pending_requests} color="yellow" />
+                        <StatsCard label="Approved Requests" value={stats?.approved_requests} color="green" />
+                        <StatsCard label="Rejected Requests" value={stats?.rejected_requests} color="red" />
+                    </div>
+
                     {/* Quick Actions */}
                     <div className="mb-6">
                         <Link href={route('leave-requests.create')}>
@@ -94,11 +103,10 @@ export default function ManagerDashboard({ team, pendingRequests, approvedReques
                                                         {request.total_days}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                                            request.status === 'approved' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' :
+                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${request.status === 'approved' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' :
                                                             request.status === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100' :
-                                                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
-                                                        }`}>
+                                                                'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
+                                                            }`}>
                                                             {request.status}
                                                         </span>
                                                     </td>
