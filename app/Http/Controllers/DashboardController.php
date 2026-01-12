@@ -45,9 +45,16 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
+        // Get admin's own leave requests
+        $myLeaveRequests = LeaveRequest::with(['leaveType', 'user.team'])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
+
         return Inertia::render('Dashboard/Admin', [
             'stats' => $stats,
             'recentRequests' => $recentRequests,
+            'myLeaveRequests' => $myLeaveRequests,
         ]);
     }
 
@@ -94,21 +101,51 @@ class DashboardController extends Controller
             ->orWhereBetween('end_date', [$nextWeekStart, $nextWeekEnd])
             ->get();
 
-        // Get manager's leave balances
-        $leaveBalances = LeaveBalance::with('leaveType')
+        // Get all active leave types
+        $leaveTypes = \App\Models\LeaveType::where('is_active', true)->get();
+        $year = now()->year;
+
+        // Get existing balances
+        $existingBalances = LeaveBalance::with('leaveType')
             ->where('user_id', $user->id)
-            ->where('year', now()->year)
+            ->where('year', $year)
             ->get()
-            ->map(function ($balance) {
+            ->keyBy('leave_type_id');
+
+        // Build balances array for all leave types
+        $leaveBalances = $leaveTypes->map(function ($leaveType) use ($existingBalances) {
+            $balance = $existingBalances->get($leaveType->id);
+            
+            if ($balance) {
                 return [
                     'id' => $balance->id,
-                    'leave_type' => $balance->leaveType->name,
+                    'leave_type' => $leaveType->name,
+                    'leave_type_id' => $leaveType->id,
                     'total_days' => $balance->total_days,
                     'used_days' => $balance->used_days,
                     'pending_days' => $balance->pending_days,
                     'available_days' => $balance->available_days,
                 ];
-            });
+            } else {
+                // No balance record exists, show default values
+                $defaultTotalDays = $leaveType->max_days_per_year ?? 0;
+                return [
+                    'id' => null,
+                    'leave_type' => $leaveType->name,
+                    'leave_type_id' => $leaveType->id,
+                    'total_days' => $defaultTotalDays,
+                    'used_days' => 0,
+                    'pending_days' => 0,
+                    'available_days' => $defaultTotalDays,
+                ];
+            }
+        });
+
+        // Get manager's own leave requests
+        $myLeaveRequests = LeaveRequest::with(['leaveType', 'user.team'])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
 
         return Inertia::render('Dashboard/Manager', [
             'team' => $team,
@@ -118,6 +155,7 @@ class DashboardController extends Controller
             'onLeaveToday' => $onLeaveToday,
             'onLeaveNextWeek' => $onLeaveNextWeek,
             'leaveBalances' => $leaveBalances,
+            'myLeaveRequests' => $myLeaveRequests,
         ]);
     }
 
@@ -132,21 +170,45 @@ class DashboardController extends Controller
             ->latest()
             ->get();
 
-        // Get leave balances
-        $leaveBalances = LeaveBalance::with('leaveType')
+        // Get all active leave types
+        $leaveTypes = \App\Models\LeaveType::where('is_active', true)->get();
+        $year = now()->year;
+
+        // Get existing balances
+        $existingBalances = LeaveBalance::with('leaveType')
             ->where('user_id', $user->id)
-            ->where('year', now()->year)
+            ->where('year', $year)
             ->get()
-            ->map(function ($balance) {
+            ->keyBy('leave_type_id');
+
+        // Build balances array for all leave types
+        $leaveBalances = $leaveTypes->map(function ($leaveType) use ($existingBalances) {
+            $balance = $existingBalances->get($leaveType->id);
+            
+            if ($balance) {
                 return [
                     'id' => $balance->id,
-                    'leave_type' => $balance->leaveType->name,
+                    'leave_type' => $leaveType->name,
+                    'leave_type_id' => $leaveType->id,
                     'total_days' => $balance->total_days,
                     'used_days' => $balance->used_days,
                     'pending_days' => $balance->pending_days,
                     'available_days' => $balance->available_days,
                 ];
-            });
+            } else {
+                // No balance record exists, show default values
+                $defaultTotalDays = $leaveType->max_days_per_year ?? 0;
+                return [
+                    'id' => null,
+                    'leave_type' => $leaveType->name,
+                    'leave_type_id' => $leaveType->id,
+                    'total_days' => $defaultTotalDays,
+                    'used_days' => 0,
+                    'pending_days' => 0,
+                    'available_days' => $defaultTotalDays,
+                ];
+            }
+        });
 
         return Inertia::render('Dashboard/Employee', [
             'leaveRequests' => $leaveRequests,
