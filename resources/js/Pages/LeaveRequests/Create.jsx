@@ -17,6 +17,9 @@ export default function CreateLeaveRequest({ leaveTypes }) {
         document: null,
     });
 
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+
     const submit = (e) => {
         e.preventDefault();
         post(route('leave-requests.store'), {
@@ -31,6 +34,15 @@ export default function CreateLeaveRequest({ leaveTypes }) {
         setSelectedLeaveType(selected);
         // Clear document when changing leave type
         setData('document', null);
+    };
+
+    const handleStartDateChange = (e) => {
+        const startDate = e.target.value;
+        setData('start_date', startDate);
+        // If end_date is before the new start_date, clear it
+        if (data.end_date && startDate && data.end_date < startDate) {
+            setData('end_date', '');
+        }
     };
 
     const handleDocumentChange = (e) => {
@@ -77,7 +89,8 @@ export default function CreateLeaveRequest({ leaveTypes }) {
                                         id="start_date"
                                         type="date"
                                         value={data.start_date}
-                                        onChange={(e) => setData('start_date', e.target.value)}
+                                        onChange={handleStartDateChange}
+                                        min={today}
                                         className="mt-1 block w-full"
                                         required
                                     />
@@ -91,6 +104,7 @@ export default function CreateLeaveRequest({ leaveTypes }) {
                                         type="date"
                                         value={data.end_date}
                                         onChange={(e) => setData('end_date', e.target.value)}
+                                        min={data.start_date || today}
                                         className="mt-1 block w-full"
                                         required
                                     />
