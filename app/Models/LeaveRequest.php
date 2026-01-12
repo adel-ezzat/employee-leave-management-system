@@ -15,6 +15,7 @@ class LeaveRequest extends Model
         'end_date',
         'total_days',
         'reason',
+        'document',
         'status',
         'approved_by',
         'rejection_reason',

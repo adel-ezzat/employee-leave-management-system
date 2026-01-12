@@ -22,11 +22,30 @@ class StoreLeaveRequestRequest extends FormRequest
      */
     public function rules(): array
     {
+        $leaveType = \App\Models\LeaveType::find($this->leave_type_id);
+        $requiresDocument = $leaveType && $leaveType->requires_medical_document;
+
         return [
             'leave_type_id' => ['required', 'exists:leave_types,id'],
             'start_date' => ['required', 'date', 'after_or_equal:today'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'reason' => ['nullable', 'string', 'max:1000'],
+            'document' => $requiresDocument 
+                ? ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'] 
+                : ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'document.required' => 'A medical document is required for this leave type.',
+            'document.file' => 'The document must be a valid file.',
+            'document.mimes' => 'The document must be a PDF, JPG, JPEG, or PNG file.',
+            'document.max' => 'The document must not be larger than 10MB.',
         ];
     }
 

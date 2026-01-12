@@ -82,7 +82,14 @@ class LeaveRequestController extends Controller
      */
     public function create(): Response
     {
-        $leaveTypes = \App\Models\LeaveType::where('is_active', true)->get();
+        $leaveTypes = \App\Models\LeaveType::where('is_active', true)->get()
+            ->map(function ($type) {
+                return [
+                    'id' => $type->id,
+                    'name' => $type->name,
+                    'requires_medical_document' => $type->requires_medical_document,
+                ];
+            });
 
         return Inertia::render('LeaveRequests/Create', [
             'leaveTypes' => $leaveTypes,
@@ -101,7 +108,13 @@ class LeaveRequestController extends Controller
         $endDate = Carbon::parse($validated['end_date']);
         $totalDays = LeaveRequest::calculateDays($startDate, $endDate);
 
-        DB::transaction(function () use ($validated, $user, $totalDays) {
+        DB::transaction(function () use ($validated, $user, $totalDays, $request) {
+            // Handle document upload
+            $documentPath = null;
+            if ($request->hasFile('document')) {
+                $documentPath = $request->file('document')->store('leave-documents', 'public');
+            }
+
             // Create leave request
             $leaveRequest = LeaveRequest::create([
                 'user_id' => $user->id,
@@ -110,6 +123,7 @@ class LeaveRequestController extends Controller
                 'end_date' => $validated['end_date'],
                 'total_days' => $totalDays,
                 'reason' => $validated['reason'] ?? null,
+                'document' => $documentPath,
                 'status' => 'pending',
             ]);
 
