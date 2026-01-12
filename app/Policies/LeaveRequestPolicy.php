@@ -31,8 +31,8 @@ class LeaveRequestPolicy
      */
     public function create(User $user): bool
     {
-        // Employees and managers can create leave requests
-        return $user->isEmployee() || $user->isManager();
+        // Employees, managers, and admins can create leave requests
+        return $user->isEmployee() || $user->isManager() || $user->isAdmin();
     }
 
     /**

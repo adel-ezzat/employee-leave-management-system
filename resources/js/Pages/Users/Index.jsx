@@ -72,18 +72,28 @@ export default function UsersIndex({ users }) {
                                                     {user.team ? user.team.name : '-'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <Link
-                                                        href={route('users.edit', user.id)}
-                                                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4"
-                                                    >
-                                                        Edit
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleDelete(user.id)}
-                                                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                                                    >
-                                                        Delete
-                                                    </button>
+                                                    <div className="flex items-center gap-3">
+                                                        <Link
+                                                            href={route('users.edit', user.id)}
+                                                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                                        >
+                                                            Edit
+                                                        </Link>
+                                                        {user.role === 'employee' && (
+                                                            <Link
+                                                                href={route('leave-balances.index', { user_id: user.id })}
+                                                                className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                                                            >
+                                                                Leave Balances
+                                                            </Link>
+                                                        )}
+                                                        <button
+                                                            onClick={() => handleDelete(user.id)}
+                                                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

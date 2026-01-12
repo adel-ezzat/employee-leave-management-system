@@ -2,10 +2,15 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
+    
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -43,6 +48,8 @@ Route::middleware('auth')->group(function () {
     // Leave Balances
     Route::get('leave-balances', [App\Http\Controllers\LeaveBalanceController::class, 'index'])
         ->name('leave-balances.index');
+    Route::post('leave-balances', [App\Http\Controllers\LeaveBalanceController::class, 'store'])
+        ->name('leave-balances.store');
     Route::patch('leave-balances/{leaveBalance}', [App\Http\Controllers\LeaveBalanceController::class, 'update'])
         ->name('leave-balances.update');
     Route::post('leave-balances/set-global-limits', [App\Http\Controllers\LeaveBalanceController::class, 'setGlobalLimits'])

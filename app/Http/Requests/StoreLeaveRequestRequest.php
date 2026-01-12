@@ -51,7 +51,7 @@ class StoreLeaveRequestRequest extends FormRequest
                 $validator->errors()->add('end_date', "Maximum days allowed for this leave type is {$leaveType->max_days_per_year} days.");
             }
 
-            // Check available balance
+            // Check available balance (only for paid leave types)
             $user = $this->user();
             $year = now()->year;
             $balance = \App\Models\LeaveBalance::where('user_id', $user->id)
@@ -59,7 +59,7 @@ class StoreLeaveRequestRequest extends FormRequest
                 ->where('year', $year)
                 ->first();
 
-            if ($balance && $leaveType->is_paid) {
+            if ($balance && $leaveType && $leaveType->is_paid) {
                 $available = $balance->available_days;
                 if ($totalDays > $available) {
                     $validator->errors()->add('end_date', "You only have {$available} days available for this leave type.");

@@ -48,7 +48,7 @@ class LeaveTypeSeeder extends Seeder
                 'slug' => 'unpaid-leave',
                 'description' => 'Unpaid leave without salary',
                 'is_paid' => false,
-                'max_days_per_year' => null,
+                'max_days_per_year' => 30,
                 'requires_medical_document' => false,
                 'is_active' => true,
                 'color' => '#8C8C8C',
