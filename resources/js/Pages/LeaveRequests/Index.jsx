@@ -5,7 +5,7 @@ import TextInput from '@/Components/TextInput';
 import { useState } from 'react';
 import { formatDateRange } from '@/Utils/dateFormatter';
 
-export default function LeaveRequestsIndex({ leaveRequests, filters }) {
+export default function LeaveRequestsIndex({ leaveRequests, filters, users }) {
     const [searchFilters, setSearchFilters] = useState(filters || {});
 
     const handleFilter = () => {
@@ -40,7 +40,23 @@ export default function LeaveRequestsIndex({ leaveRequests, filters }) {
                     {/* Filters */}
                     <div className="mb-6 overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
                         <div className="p-6">
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+                                {users && users.length > 0 && (
+                                    <div>
+                                        <select
+                                            value={searchFilters.user_id || ''}
+                                            onChange={(e) => setSearchFilters({ ...searchFilters, user_id: e.target.value })}
+                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                                        >
+                                            <option value="">All Users</option>
+                                            {users.map((user) => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
                                 <div>
                                     <select
                                         value={searchFilters.status || ''}

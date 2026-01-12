@@ -43,6 +43,10 @@ class LeaveRequestController extends Controller
             $query->where('leave_type_id', $request->leave_type_id);
         }
 
+        if ($request->has('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
         if ($request->has('date_from')) {
             $query->where('start_date', '>=', $request->date_from);
         }
@@ -53,9 +57,23 @@ class LeaveRequestController extends Controller
 
         $leaveRequests = $query->latest()->paginate(15);
 
+        // Get users list for filter (only for admins and managers)
+        $users = null;
+        if ($user->isAdmin()) {
+            $users = \App\Models\User::whereIn('role', ['employee', 'manager'])
+                ->orderBy('name')
+                ->get(['id', 'name', 'email']);
+        } elseif ($user->isManager()) {
+            $users = \App\Models\User::where('team_id', $user->team_id)
+                ->where('role', 'employee')
+                ->orderBy('name')
+                ->get(['id', 'name', 'email']);
+        }
+
         return Inertia::render('LeaveRequests/Index', [
             'leaveRequests' => $leaveRequests,
-            'filters' => $request->only(['status', 'leave_type_id', 'date_from', 'date_to']),
+            'filters' => $request->only(['status', 'leave_type_id', 'user_id', 'date_from', 'date_to']),
+            'users' => $users,
         ]);
     }
 
