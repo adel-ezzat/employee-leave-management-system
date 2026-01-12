@@ -29,7 +29,7 @@ export default function ManagerDashboard({ team, pendingRequests, approvedReques
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                                 My Leave Balances
                             </h3>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                                 {leaveBalances.map((balance) => (
                                     <div key={balance.id || balance.leave_type_id} className="border border-gray-200 rounded-lg p-4 dark:border-gray-700">
                                         <div className="font-medium text-gray-900 dark:text-gray-100">
