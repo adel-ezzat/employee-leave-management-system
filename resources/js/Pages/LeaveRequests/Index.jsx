@@ -2,6 +2,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
+import StatusBadge from '@/Components/StatusBadge';
+import SectionContainer from '@/Components/SectionContainer';
 import { useState } from 'react';
 import { formatDateRange } from '@/Utils/dateFormatter';
 
@@ -38,9 +40,8 @@ export default function LeaveRequestsIndex({ leaveRequests, filters, users }) {
                     </div>
 
                     {/* Filters */}
-                    <div className="mb-6 overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
-                        <div className="p-6">
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+                    <SectionContainer>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
                                 {users && users.length > 0 && (
                                     <div>
                                         <select
@@ -89,13 +90,11 @@ export default function LeaveRequestsIndex({ leaveRequests, filters, users }) {
                                     <PrimaryButton onClick={handleFilter}>Filter</PrimaryButton>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                    </SectionContainer>
 
                     {/* Leave Requests Table */}
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
-                        <div className="p-6">
-                            <div className="overflow-x-auto">
+                    <SectionContainer>
+                        <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                     <thead className="bg-gray-50 dark:bg-gray-700">
                                         <tr>
@@ -141,13 +140,7 @@ export default function LeaveRequestsIndex({ leaveRequests, filters, users }) {
                                                     {request.total_days}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                                        request.status === 'approved' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' :
-                                                        request.status === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100' :
-                                                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
-                                                    }`}>
-                                                        {request.status}
-                                                    </span>
+                                                    <StatusBadge status={request.status} />
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <Link
@@ -180,8 +173,7 @@ export default function LeaveRequestsIndex({ leaveRequests, filters, users }) {
                                     ))}
                                 </div>
                             )}
-                        </div>
-                    </div>
+                    </SectionContainer>
                 </div>
             </div>
         </AuthenticatedLayout>
