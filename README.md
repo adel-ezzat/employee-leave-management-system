@@ -4,20 +4,20 @@ A complete, production-ready Employee Leave Management System built with Laravel
 
 ## Features
 
-### 1. Team & Manager System
+### Team & Manager System
 - Admin can create multiple teams
 - Each team has exactly one manager
 - Each employee belongs to one team
 - Managers can approve/reject leave requests only for their team members
 - Admin can manage all teams and users
 
-### 2. Leave Balances & Holidays
+### Leave Balances
 - Global leave limits per leave type (e.g., 21 days annual leave)
 - Custom leave limits per employee (overrides global)
 - Dynamic leave balance calculation: `available = total - approved_used - pending`
 - Admin can set global and custom leave limits
 
-### 3. Leave Dashboard
+### Leave Dashboard
 **Managers see:**
 - All leave requests for their team
 - Filter by status, date, and leave type
@@ -34,7 +34,7 @@ A complete, production-ready Employee Leave Management System built with Laravel
 - All teams and employees
 - All leave requests
 
-### 4. Leave Types (Egyptian Default)
+### Leave Types Management (Admin Only)
 Pre-configured Egyptian leave types:
 - Annual Leave (21 days)
 - Casual Leave (7 days)
@@ -45,13 +45,9 @@ Pre-configured Egyptian leave types:
 - Paternity Leave (7 days)
 - Unpaid Leave
 
-Each leave type has:
-- Paid/Unpaid status
-- Max days per year
-- Requires medical document flag
-- Color coding
+Admin can create, edit, and delete leave types with full CRUD operations.
 
-### 5. Leave Request Workflow
+### Leave Request Workflow
 - Employee submits request → status = pending
 - Manager approves or rejects
 - If approved, leave balance is automatically deducted
@@ -129,40 +125,7 @@ After seeding, you can login with:
 
 ### Frontend
 - `resources/js/Pages/Dashboard/` - Dashboard components (Admin, Manager, Employee)
-- `resources/js/Pages/LeaveRequests/` - Leave request components (Index, Create, Show)
+- `resources/js/Pages/LeaveRequests/` - Leave request components (Index, Create, Edit, Show)
+- `resources/js/Pages/LeaveTypes/` - Leave type management components (Index, Create, Edit)
 - `resources/js/Layouts/` - Layout components
 - `resources/js/Components/` - Reusable components
-
-## Key Routes
-
-- `/dashboard` - Role-based dashboard
-- `/leave-requests` - Leave requests index
-- `/leave-requests/create` - Create new leave request
-- `/leave-requests/{id}` - View leave request details
-- `/teams` - Teams management (Admin only)
-- `/leave-types` - Leave types management (Admin only)
-
-## Security Features
-
-- Role-based access control (Admin, Manager, Employee)
-- Policy-based authorization
-- Form request validation
-- CSRF protection
-- SQL injection prevention via Eloquent ORM
-- XSS protection via React
-
-## Next Steps
-
-1. Configure your database connection
-2. Run migrations and seeders
-3. Build frontend assets
-4. Start the development server
-5. Login and explore the system!
-
-## Notes
-
-- The system uses Laravel's default authentication
-- All dates are handled with Carbon
-- Leave balances are calculated dynamically
-- The system prevents overlapping approved leaves
-- Managers can only approve requests for their team
