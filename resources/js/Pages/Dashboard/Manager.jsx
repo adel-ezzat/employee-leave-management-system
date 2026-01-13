@@ -105,28 +105,65 @@ export default function ManagerDashboard({ team, stats, pendingRequests, approve
                     {/* Pending Requests */}
                     <SectionContainer title={`Team Pending Requests (${pendingRequests.length})`}>
                         {pendingRequests.length > 0 ? (
-                            <div className="space-y-4">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 {pendingRequests.map((request) => (
-                                    <div key={request.id} className="border border-gray-200 rounded-lg p-4 dark:border-gray-700">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <div className="font-medium text-gray-900 dark:text-gray-100">
-                                                    {request.user.name}
-                                                </div>
-                                                <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                    {request.leave_type.name} - {formatDateRange(request.start_date, request.end_date)}
-                                                </div>
-                                                {request.reason && (
-                                                    <div className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                                                        {request.reason}
+                                    <div
+                                        key={request.id}
+                                        className="border border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800 rounded-lg p-5 hover:shadow-md transition-shadow duration-200"
+                                    >
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center">
+                                                        <span className="text-yellow-700 dark:text-yellow-300 font-semibold text-sm">
+                                                            {request.user.name.charAt(0).toUpperCase()}
+                                                        </span>
                                                     </div>
-                                                )}
+                                                    <div>
+                                                        <div className="font-semibold text-gray-900 dark:text-gray-100">
+                                                            {request.user.name}
+                                                        </div>
+                                                        {request.user.email && (
+                                                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                                {request.user.email}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
+                                            <StatusBadge status={request.status} />
+                                        </div>
+
+                                        <div className="space-y-2 mb-4">
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="text-gray-600 dark:text-gray-400 font-medium">Leave Type:</span>
+                                                <span className="text-gray-900 dark:text-gray-100 font-semibold">{request.leave_type.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="text-gray-600 dark:text-gray-400 font-medium">Period:</span>
+                                                <span className="text-gray-900 dark:text-gray-100">{formatDateRange(request.start_date, request.end_date)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="text-gray-600 dark:text-gray-400 font-medium">Days:</span>
+                                                <span className="text-gray-900 dark:text-gray-100 font-semibold">{request.total_days} {request.total_days === 1 ? 'day' : 'days'}</span>
+                                            </div>
+                                        </div>
+
+                                        {request.reason && (
+                                            <div className="mb-4 p-3 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                                                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Reason:</div>
+                                                <div className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                                                    {request.reason}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="flex justify-end pt-3 border-t border-yellow-200 dark:border-yellow-800">
                                             <Link
                                                 href={route('leave-requests.show', request.id)}
-                                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                                className="inline-flex items-center px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-md transition-colors duration-200 dark:bg-yellow-700 dark:hover:bg-yellow-600"
                                             >
-                                                Review
+                                                Review Request
                                             </Link>
                                         </div>
                                     </div>
@@ -140,10 +177,53 @@ export default function ManagerDashboard({ team, stats, pendingRequests, approve
                     {/* On Leave Today */}
                     <SectionContainer title={`On Leave Today (${onLeaveToday.length})`}>
                         {onLeaveToday.length > 0 ? (
-                            <div className="space-y-2">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {onLeaveToday.map((request) => (
-                                    <div key={request.id} className="text-sm text-gray-900 dark:text-gray-100">
-                                        {request.user.name} - {request.leave_type.name} ({formatDateRange(request.start_date, request.end_date)})
+                                    <div
+                                        key={request.id}
+                                        className="border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                                    >
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center flex-shrink-0">
+                                                <span className="text-green-700 dark:text-green-300 font-semibold text-sm">
+                                                    {request.user.name.charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+                                                    {request.user.name}
+                                                </div>
+                                                {request.user.email && (
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                        {request.user.email}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="text-gray-600 dark:text-gray-400 font-medium">Leave Type:</span>
+                                                <span className="text-gray-900 dark:text-gray-100 font-semibold">{request.leave_type.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="text-gray-600 dark:text-gray-400 font-medium">Period:</span>
+                                                <span className="text-gray-900 dark:text-gray-100">{formatDateRange(request.start_date, request.end_date)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="text-gray-600 dark:text-gray-400 font-medium">Days:</span>
+                                                <span className="text-gray-900 dark:text-gray-100 font-semibold">{request.total_days} {request.total_days === 1 ? 'day' : 'days'}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800">
+                                            <Link
+                                                href={route('leave-requests.show', request.id)}
+                                                className="text-sm text-green-700 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 font-medium"
+                                            >
+                                                View Details →
+                                            </Link>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -155,10 +235,53 @@ export default function ManagerDashboard({ team, stats, pendingRequests, approve
                     {/* On Leave Next Week */}
                     <SectionContainer title={`On Leave Next Week (${onLeaveNextWeek.length})`}>
                         {onLeaveNextWeek.length > 0 ? (
-                            <div className="space-y-2">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {onLeaveNextWeek.map((request) => (
-                                    <div key={request.id} className="text-sm text-gray-900 dark:text-gray-100">
-                                        {request.user.name} - {request.leave_type.name} ({formatDateRange(request.start_date, request.end_date)})
+                                    <div
+                                        key={request.id}
+                                        className="border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                                    >
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0">
+                                                <span className="text-blue-700 dark:text-blue-300 font-semibold text-sm">
+                                                    {request.user.name.charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+                                                    {request.user.name}
+                                                </div>
+                                                {request.user.email && (
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                        {request.user.email}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="text-gray-600 dark:text-gray-400 font-medium">Leave Type:</span>
+                                                <span className="text-gray-900 dark:text-gray-100 font-semibold">{request.leave_type.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="text-gray-600 dark:text-gray-400 font-medium">Period:</span>
+                                                <span className="text-gray-900 dark:text-gray-100">{formatDateRange(request.start_date, request.end_date)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="text-gray-600 dark:text-gray-400 font-medium">Days:</span>
+                                                <span className="text-gray-900 dark:text-gray-100 font-semibold">{request.total_days} {request.total_days === 1 ? 'day' : 'days'}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
+                                            <Link
+                                                href={route('leave-requests.show', request.id)}
+                                                className="text-sm text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                                            >
+                                                View Details →
+                                            </Link>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

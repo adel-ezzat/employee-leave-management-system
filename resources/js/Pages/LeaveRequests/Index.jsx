@@ -41,7 +41,7 @@ export default function LeaveRequestsIndex({ leaveRequests, filters, users }) {
 
                     {/* Filters */}
                     <SectionContainer>
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-5 justify-between items-center">
                                 {users && users.length > 0 && (
                                     <div>
                                         <select
