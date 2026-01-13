@@ -66,20 +66,34 @@ export default function CreateLeaveRequest({ leaveTypes }) {
                             <form onSubmit={submit}>
                                 <div className="mb-4">
                                     <InputLabel htmlFor="leave_type_id" value="Leave Type" />
-                                    <select
-                                        id="leave_type_id"
-                                        value={data.leave_type_id}
-                                        onChange={handleLeaveTypeChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
-                                        required
-                                    >
-                                        <option value="">Select Leave Type</option>
-                                        {leaveTypes.map((type) => (
-                                            <option key={type.id} value={type.id}>
-                                                {type.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div className="mt-1">
+                                        <div className="flex gap-4 items-center">
+                                            <select
+                                                id="leave_type_id"
+                                                value={data.leave_type_id}
+                                                onChange={handleLeaveTypeChange}
+                                                className="flex-1 block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                                                required
+                                            >
+                                                <option value="">Select Leave Type</option>
+                                                {leaveTypes.map((type) => (
+                                                    <option key={type.id} value={type.id}>
+                                                        {type.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {selectedLeaveType && (
+                                                <div className="flex gap-6 text-sm whitespace-nowrap">
+                                                    <div className="text-gray-700 dark:text-gray-300">
+                                                        <span className="font-semibold">Used:</span> <span className="text-red-600 dark:text-red-400">{selectedLeaveType.used_days || 0}</span> days
+                                                    </div>
+                                                    <div className="text-gray-700 dark:text-gray-300">
+                                                        <span className="font-semibold">Remaining:</span> <span className="text-green-600 dark:text-green-400">{selectedLeaveType.remaining_days || 0}</span> days
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                     <InputError message={errors.leave_type_id} className="mt-2" />
                                 </div>
 

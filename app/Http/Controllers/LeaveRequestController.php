@@ -80,19 +80,52 @@ class LeaveRequestController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        $user = $request->user();
+        $year = now()->year;
+
         $leaveTypes = \App\Models\LeaveType::where('is_active', true)->get()
             ->map(function ($type) {
                 return [
                     'id' => $type->id,
                     'name' => $type->name,
                     'requires_medical_document' => $type->requires_medical_document,
+                    'max_days_per_year' => $type->max_days_per_year,
                 ];
             });
 
+        // Get user's leave balances
+        $leaveBalances = \App\Models\LeaveBalance::where('user_id', $user->id)
+            ->where('year', $year)
+            ->get()
+            ->keyBy('leave_type_id');
+
+        // Map leave types with balance information
+        $leaveTypesWithBalance = $leaveTypes->map(function ($type) use ($leaveBalances) {
+            $balance = $leaveBalances->get($type['id']);
+            
+            if ($balance) {
+                return [
+                    ...$type,
+                    'used_days' => $balance->used_days,
+                    'remaining_days' => $balance->available_days,
+                    'total_days' => $balance->total_days,
+                ];
+            } else {
+                // No balance record exists, show default values
+                $defaultTotalDays = $type['max_days_per_year'] ?? 0;
+                return [
+                    ...$type,
+                    'used_days' => 0,
+                    'remaining_days' => $defaultTotalDays,
+                    'total_days' => $defaultTotalDays,
+                ];
+            }
+        });
+
         return Inertia::render('LeaveRequests/Create', [
-            'leaveTypes' => $leaveTypes,
+            'leaveTypes' => $leaveTypesWithBalance,
         ]);
     }
 
