@@ -6,6 +6,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import SectionContainer from '@/Components/SectionContainer';
 import { useState } from 'react';
 import { formatDateRange } from '@/Utils/dateFormatter';
+import { exportToExcel } from '@/Utils/excelExport';
 
 export default function LeaveRequestsIndex({ leaveRequests, filters, users }) {
     const [searchFilters, setSearchFilters] = useState(filters || {});
@@ -19,6 +20,20 @@ export default function LeaveRequestsIndex({ leaveRequests, filters, users }) {
         router.get(route('leave-requests.index'), filters, {
             preserveState: true,
         });
+    };
+
+    const handleExport = () => {
+        const columns = [
+            { key: 'user', label: 'Employee', transform: (value) => value?.name || 'N/A' },
+            { key: 'user', label: 'Team', transform: (value) => value?.team?.name || 'No Team' },
+            { key: 'leave_type', label: 'Leave Type', transform: (value) => value?.name || 'N/A' },
+            { key: 'start_date', label: 'Start Date', transform: (value) => value || '' },
+            { key: 'end_date', label: 'End Date', transform: (value) => value || '' },
+            { key: 'total_days', label: 'Days' },
+            { key: 'status', label: 'Status', transform: (value) => value?.charAt(0).toUpperCase() + value?.slice(1) || '' },
+            { key: 'reason', label: 'Reason' },
+        ];
+        exportToExcel(leaveRequests.data, columns, 'leave_requests');
     };
 
     return (
@@ -37,6 +52,9 @@ export default function LeaveRequestsIndex({ leaveRequests, filters, users }) {
                         <Link href={route('leave-requests.create')}>
                             <PrimaryButton>Request Leave</PrimaryButton>
                         </Link>
+                        <PrimaryButton onClick={handleExport}>
+                            Export to Excel
+                        </PrimaryButton>
                     </div>
 
                     {/* Filters */}

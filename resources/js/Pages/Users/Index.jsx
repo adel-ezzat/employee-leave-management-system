@@ -1,12 +1,23 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
+import { exportToExcel } from '@/Utils/excelExport';
 
 export default function UsersIndex({ users }) {
     const handleDelete = (userId) => {
         if (confirm('Are you sure you want to delete this user?')) {
             router.delete(route('users.destroy', userId));
         }
+    };
+
+    const handleExport = () => {
+        const columns = [
+            { key: 'name', label: 'Name' },
+            { key: 'email', label: 'Email' },
+            { key: 'role', label: 'Role', transform: (value) => value?.charAt(0).toUpperCase() + value?.slice(1) || '' },
+            { key: 'team', label: 'Team', transform: (value) => value?.name || '-' },
+        ];
+        exportToExcel(users, columns, 'users');
     };
 
     return (
@@ -21,10 +32,13 @@ export default function UsersIndex({ users }) {
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="mb-6">
+                    <div className="mb-6 flex justify-between items-center">
                         <Link href={route('users.create')}>
                             <PrimaryButton>Create User</PrimaryButton>
                         </Link>
+                        <PrimaryButton onClick={handleExport}>
+                            Export to Excel
+                        </PrimaryButton>
                     </div>
 
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">

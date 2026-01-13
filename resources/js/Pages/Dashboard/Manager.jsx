@@ -7,8 +7,20 @@ import LeaveBalanceCard from '@/Components/LeaveBalanceCard';
 import SectionContainer from '@/Components/SectionContainer';
 import EmptyState from '@/Components/EmptyState';
 import { formatDate, formatDateRange } from '@/Utils/dateFormatter';
+import { exportToExcel } from '@/Utils/excelExport';
 
 export default function ManagerDashboard({ team, stats, pendingRequests, approvedRequests, rejectedRequests, onLeaveToday, onLeaveNextWeek, leaveBalances, myLeaveRequests }) {
+    const handleExportMyRequests = () => {
+        const columns = [
+            { key: 'leave_type', label: 'Leave Type', transform: (value) => value?.name || 'N/A' },
+            { key: 'start_date', label: 'Start Date' },
+            { key: 'end_date', label: 'End Date' },
+            { key: 'total_days', label: 'Days' },
+            { key: 'status', label: 'Status', transform: (value) => value?.charAt(0).toUpperCase() + value?.slice(1) || '' },
+        ];
+        exportToExcel(myLeaveRequests, columns, 'my_leave_requests');
+    };
+
     return (
         <AuthenticatedLayout
             header={
@@ -46,7 +58,16 @@ export default function ManagerDashboard({ team, stats, pendingRequests, approve
                     </SectionContainer>
 
                     {/* My Leave Requests */}
-                    <SectionContainer title="My Leave Requests">
+                    <SectionContainer 
+                        title="My Leave Requests"
+                        action={
+                            myLeaveRequests.length > 0 && (
+                                <PrimaryButton onClick={handleExportMyRequests}>
+                                    Export to Excel
+                                </PrimaryButton>
+                            )
+                        }
+                    >
                         {myLeaveRequests.length > 0 ? (
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">

@@ -7,8 +7,20 @@ import LeaveBalanceCard from '@/Components/LeaveBalanceCard';
 import SectionContainer from '@/Components/SectionContainer';
 import EmptyState from '@/Components/EmptyState';
 import { formatDateRange } from '@/Utils/dateFormatter';
+import { exportToExcel } from '@/Utils/excelExport';
 
 export default function EmployeeDashboard({ stats, leaveRequests, leaveBalances }) {
+    const handleExport = () => {
+        const columns = [
+            { key: 'leave_type', label: 'Leave Type', transform: (value) => value?.name || 'N/A' },
+            { key: 'start_date', label: 'Start Date' },
+            { key: 'end_date', label: 'End Date' },
+            { key: 'total_days', label: 'Days' },
+            { key: 'status', label: 'Status', transform: (value) => value?.charAt(0).toUpperCase() + value?.slice(1) || '' },
+        ];
+        exportToExcel(leaveRequests, columns, 'my_leave_requests');
+    };
+
     return (
         <AuthenticatedLayout
             header={
@@ -45,7 +57,16 @@ export default function EmployeeDashboard({ stats, leaveRequests, leaveBalances 
                     </SectionContainer>
 
                     {/* My Leave Requests */}
-                    <SectionContainer title="My Leave Requests">
+                    <SectionContainer 
+                        title="My Leave Requests"
+                        action={
+                            leaveRequests.length > 0 && (
+                                <PrimaryButton onClick={handleExport}>
+                                    Export to Excel
+                                </PrimaryButton>
+                            )
+                        }
+                    >
                         {leaveRequests.length > 0 ? (
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">

@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import DangerButton from '@/Components/DangerButton';
 import { useState } from 'react';
+import { exportToExcel } from '@/Utils/excelExport';
 
 export default function LeaveTypesIndex({ leaveTypes }) {
     const [deletingId, setDeletingId] = useState(null);
@@ -22,6 +23,19 @@ export default function LeaveTypesIndex({ leaveTypes }) {
         }
     };
 
+    const handleExport = () => {
+        const columns = [
+            { key: 'name', label: 'Name' },
+            { key: 'slug', label: 'Slug' },
+            { key: 'is_paid', label: 'Paid', transform: (value) => value ? 'Yes' : 'No' },
+            { key: 'max_days_per_year', label: 'Max Days/Year', transform: (value) => value || '-' },
+            { key: 'requires_medical_document', label: 'Medical Doc', transform: (value) => value ? 'Yes' : 'No' },
+            { key: 'leave_requests_count', label: 'Leave Requests', transform: (value) => value || 0 },
+            { key: 'is_active', label: 'Status', transform: (value) => value ? 'Active' : 'Inactive' },
+        ];
+        exportToExcel(leaveTypes, columns, 'leave_types');
+    };
+
     return (
         <AuthenticatedLayout
             header={
@@ -34,10 +48,13 @@ export default function LeaveTypesIndex({ leaveTypes }) {
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="mb-6">
+                    <div className="mb-6 flex justify-between items-center">
                         <Link href={route('leave-types.create')}>
                             <PrimaryButton>Create Leave Type</PrimaryButton>
                         </Link>
+                        <PrimaryButton onClick={handleExport}>
+                            Export to Excel
+                        </PrimaryButton>
                     </div>
 
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">

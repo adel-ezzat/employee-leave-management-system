@@ -2,12 +2,23 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import DangerButton from '@/Components/DangerButton';
+import { exportToExcel } from '@/Utils/excelExport';
 
 export default function TeamsIndex({ teams }) {
     const handleDelete = (teamId) => {
         if (confirm('Are you sure you want to delete this team?')) {
             router.delete(route('teams.destroy', teamId));
         }
+    };
+
+    const handleExport = () => {
+        const columns = [
+            { key: 'name', label: 'Name' },
+            { key: 'manager', label: 'Manager', transform: (value) => value?.name || 'No Manager' },
+            { key: 'employees', label: 'Employees', transform: (value) => value ? value.length : 0 },
+            { key: 'description', label: 'Description', transform: (value) => value || '-' },
+        ];
+        exportToExcel(teams, columns, 'teams');
     };
 
     return (
@@ -22,10 +33,13 @@ export default function TeamsIndex({ teams }) {
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="mb-6">
+                    <div className="mb-6 flex justify-between items-center">
                         <Link href={route('teams.create')}>
                             <PrimaryButton>Create Team</PrimaryButton>
                         </Link>
+                        <PrimaryButton onClick={handleExport}>
+                            Export to Excel
+                        </PrimaryButton>
                     </div>
 
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">

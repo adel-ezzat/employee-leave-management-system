@@ -5,6 +5,7 @@ import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
 import { useState } from 'react';
+import { exportToExcel } from '@/Utils/excelExport';
 
 export default function LeaveBalancesIndex({ balances, user, year, canEdit, availableLeaveTypes = [] }) {
     const [editingId, setEditingId] = useState(null);
@@ -54,6 +55,24 @@ export default function LeaveBalancesIndex({ balances, user, year, canEdit, avai
         setShowAddForm(false);
     };
 
+    const handleExport = () => {
+        const columns = [
+            { key: 'leave_type', label: 'Leave Type', transform: (value) => value?.name || 'N/A' },
+            { key: 'total_days', label: 'Total Days' },
+            { key: 'used_days', label: 'Used Days' },
+            { key: 'pending_days', label: 'Pending Days' },
+            { 
+                key: 'available_days', 
+                label: 'Available Days',
+                transform: (value, item) => {
+                    if (value !== undefined) return value;
+                    return Math.max(0, (item.total_days || 0) - (item.used_days || 0) - (item.pending_days || 0));
+                }
+            },
+        ];
+        exportToExcel(balances, columns, `leave_balances_${user ? user.name.replace(/\s+/g, '_') : 'all'}`);
+    };
+
     return (
         <AuthenticatedLayout
             header={
@@ -81,17 +100,22 @@ export default function LeaveBalancesIndex({ balances, user, year, canEdit, avai
                         <div className="text-sm text-gray-600 dark:text-gray-400">
                             Year: {year}
                         </div>
-                        {canEdit && (
-                            availableLeaveTypes.length > 0 ? (
-                                <PrimaryButton onClick={() => setShowAddForm(!showAddForm)}>
-                                    {showAddForm ? 'Cancel' : 'Add Leave Balance'}
-                                </PrimaryButton>
-                            ) : (
-                                <span className="text-sm text-gray-500 dark:text-gray-400">
-                                    All leave types already have balances
-                                </span>
-                            )
-                        )}
+                        <div className="flex gap-2 items-center">
+                            <PrimaryButton onClick={handleExport}>
+                                Export to Excel
+                            </PrimaryButton>
+                            {canEdit && (
+                                availableLeaveTypes.length > 0 ? (
+                                    <PrimaryButton onClick={() => setShowAddForm(!showAddForm)}>
+                                        {showAddForm ? 'Cancel' : 'Add Leave Balance'}
+                                    </PrimaryButton>
+                                ) : (
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                                        All leave types already have balances
+                                    </span>
+                                )
+                            )}
+                        </div>
                     </div>
 
                     {showAddForm && canEdit && availableLeaveTypes.length > 0 && (
