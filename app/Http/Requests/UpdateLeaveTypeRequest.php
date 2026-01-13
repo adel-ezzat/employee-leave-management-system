@@ -12,7 +12,7 @@ class UpdateLeaveTypeRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $leaveType = $this->route('leaveType');
+        $leaveType = $this->route('leave_type');
         return $this->user()->can('update', $leaveType);
     }
 
@@ -23,7 +23,7 @@ class UpdateLeaveTypeRequest extends FormRequest
      */
     public function rules(): array
     {
-        $leaveType = $this->route('leaveType');
+        $leaveType = $this->route('leave_type');
         
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
