@@ -8,7 +8,7 @@ import { usePage } from '@inertiajs/react';
 import { formatDate } from '@/Utils/dateFormatter';
 import { useState } from 'react';
 
-export default function ShowLeaveRequest({ leaveRequest }) {
+export default function ShowLeaveRequest({ leaveRequest, leaveBalance }) {
     const { auth } = usePage().props;
     const user = auth.user;
     const canApprove = user?.isAdmin || (user?.isManager && leaveRequest.user?.team_id === user.team_id);
@@ -107,6 +107,40 @@ export default function ShowLeaveRequest({ leaveRequest }) {
                                         </div>
                                     </div>
                                 </div>
+
+                                {leaveBalance && (
+                                    <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                                            Leave Balance Information
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Allocated Days</div>
+                                                <div className="mt-1 text-lg text-gray-900 dark:text-gray-100">
+                                                    {leaveBalance.total_days}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Used Days</div>
+                                                <div className="mt-1 text-lg text-gray-900 dark:text-gray-100">
+                                                    {leaveBalance.used_days}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Days</div>
+                                                <div className="mt-1 text-lg text-gray-900 dark:text-gray-100">
+                                                    {leaveBalance.pending_days}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Available Days</div>
+                                                <div className="mt-1 text-lg font-semibold" style={{ color: '#04a5df' }}>
+                                                    {leaveBalance.available_days}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {leaveRequest.reason && (
                                     <div className="mt-6">
