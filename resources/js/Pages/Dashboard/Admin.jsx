@@ -54,7 +54,7 @@ export default function AdminDashboard({ stats, recentRequests, myLeaveRequests 
 
                     {/* Quick Actions */}
                     <div className="mb-6">
-                        <div className="flex gap-4 flex-wrap">
+                        <div className="flex gap-4 flex-wrap justify-center">
                             <Link href={route('users.create')}>
                                 <PrimaryButton>Create User</PrimaryButton>
                             </Link>
