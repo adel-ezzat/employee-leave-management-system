@@ -19,7 +19,7 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', User::class);
         
@@ -28,10 +28,22 @@ class UserController extends Controller
             ->where('has_balance', true)
             ->get();
         
-        $users = User::with(['team', 'managedTeams', 'leaveBalances' => function ($query) use ($year) {
+        // Get teams for filter
+        $teams = Team::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        
+        // Build query with team filter
+        $usersQuery = User::with(['team', 'managedTeams', 'leaveBalances' => function ($query) use ($year) {
             $query->where('year', $year)->with('leaveType');
-        }])
-            ->latest()
+        }]);
+        
+        // Apply team filter if provided
+        if ($request->has('team_id') && $request->team_id) {
+            $usersQuery->where('team_id', $request->team_id);
+        }
+        
+        $users = $usersQuery->latest()
             ->get()
             ->map(function ($user) use ($leaveTypes, $year) {
                 $balances = $user->leaveBalances->keyBy('leave_type_id');
@@ -81,6 +93,8 @@ class UserController extends Controller
 
         return Inertia::render('Users/Index', [
             'users' => $users,
+            'teams' => $teams,
+            'filters' => $request->only(['team_id']),
         ]);
     }
 

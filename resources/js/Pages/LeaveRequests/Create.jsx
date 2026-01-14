@@ -1,15 +1,17 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
 import { useState } from 'react';
 
-export default function CreateLeaveRequest({ leaveTypes }) {
+export default function CreateLeaveRequest({ leaveTypes, users, currentUser, selectedUserId, selectedUser }) {
     const [selectedLeaveType, setSelectedLeaveType] = useState(null);
+    const initialUserId = selectedUserId || currentUser?.id || '';
 
     const { data, setData, post, processing, errors } = useForm({
+        user_id: initialUserId,
         leave_type_id: '',
         start_date: '',
         end_date: '',
@@ -25,6 +27,23 @@ export default function CreateLeaveRequest({ leaveTypes }) {
         post(route('leave-requests.store'), {
             forceFormData: true,
         });
+    };
+
+    const handleUserChange = (e) => {
+        const userId = e.target.value;
+        setData('user_id', userId || '');
+        // Reload page with selected user to fetch their balances
+        if (userId) {
+            router.get(route('leave-requests.create'), { user_id: userId }, {
+                preserveState: false,
+                preserveScroll: false,
+            });
+        } else {
+            router.get(route('leave-requests.create'), {}, {
+                preserveState: false,
+                preserveScroll: false,
+            });
+        }
     };
 
     const handleLeaveTypeChange = (e) => {
@@ -64,6 +83,33 @@ export default function CreateLeaveRequest({ leaveTypes }) {
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
                         <div className="p-6">
                             <form onSubmit={submit}>
+                                {users && users.length > 0 && (
+                                    <div className="mb-4">
+                                        <InputLabel htmlFor="user_id" value="Select User" />
+                                        <select
+                                            id="user_id"
+                                            value={data.user_id || initialUserId}
+                                            onChange={handleUserChange}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                                        >
+                                            <option value={currentUser?.id || ''}>
+                                                {currentUser?.name || 'Myself'} ({currentUser?.email})
+                                            </option>
+                                            {users.map((user) => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.name} ({user.email}) - {user.role}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {selectedUser && (
+                                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                                Creating leave request for: <span className="font-semibold">{selectedUser.name}</span>
+                                            </p>
+                                        )}
+                                        <InputError message={errors.user_id} className="mt-2" />
+                                    </div>
+                                )}
+
                                 <div className="mb-4">
                                     <InputLabel htmlFor="leave_type_id" value="Leave Type" />
                                     <div className="mt-1">
@@ -82,7 +128,7 @@ export default function CreateLeaveRequest({ leaveTypes }) {
                                                     </option>
                                                 ))}
                                             </select>
-                                            {selectedLeaveType && (
+                                            {selectedLeaveType && selectedLeaveType.has_balance && (
                                                 <div className="flex gap-6 text-sm whitespace-nowrap">
                                                     <div className="text-gray-700 dark:text-gray-300">
                                                         <span className="font-semibold">Used:</span> <span className="text-red-600 dark:text-red-400">{selectedLeaveType.used_days || 0}</span> days
@@ -90,6 +136,11 @@ export default function CreateLeaveRequest({ leaveTypes }) {
                                                     <div className="text-gray-700 dark:text-gray-300">
                                                         <span className="font-semibold">Remaining:</span> <span className="text-green-600 dark:text-green-400">{selectedLeaveType.remaining_days || 0}</span> days
                                                     </div>
+                                                    {(data.user_id && data.user_id !== currentUser?.id) && (
+                                                        <div className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                                            (Balance for selected user)
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>

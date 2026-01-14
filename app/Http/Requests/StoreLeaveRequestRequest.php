@@ -25,7 +25,8 @@ class StoreLeaveRequestRequest extends FormRequest
         $leaveType = \App\Models\LeaveType::find($this->leave_type_id);
         $requiresDocument = $leaveType && $leaveType->requires_medical_document;
 
-        return [
+        $user = $this->user();
+        $rules = [
             'leave_type_id' => ['required', 'exists:leave_types,id'],
             'start_date' => ['required', 'date', 'after_or_equal:today'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
@@ -34,6 +35,13 @@ class StoreLeaveRequestRequest extends FormRequest
                 ? ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'] 
                 : ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ];
+
+        // Admin and manager can select a user
+        if ($user->isAdmin() || $user->isManager()) {
+            $rules['user_id'] = ['nullable', 'exists:users,id'];
+        }
+
+        return $rules;
     }
 
     /**
@@ -70,10 +78,21 @@ class StoreLeaveRequestRequest extends FormRequest
                 $validator->errors()->add('end_date', "Maximum days allowed for this leave type is {$leaveType->max_days_per_year} days.");
             }
 
+            // Determine target user (selected user for admin/manager, or current user)
+            $currentUser = $this->user();
+            $targetUserId = $this->user_id ?? $currentUser->id;
+            
+            // Verify manager can only create requests for their team
+            if ($currentUser->isManager() && $this->user_id) {
+                $targetUser = \App\Models\User::find($this->user_id);
+                if ($targetUser && $targetUser->team_id !== $currentUser->team_id) {
+                    $validator->errors()->add('user_id', 'You can only create leave requests for members of your team.');
+                }
+            }
+
             // Check available balance (only for paid leave types)
-            $user = $this->user();
             $year = now()->year;
-            $balance = \App\Models\LeaveBalance::where('user_id', $user->id)
+            $balance = \App\Models\LeaveBalance::where('user_id', $targetUserId)
                 ->where('leave_type_id', $this->leave_type_id)
                 ->where('year', $year)
                 ->first();
@@ -81,12 +100,14 @@ class StoreLeaveRequestRequest extends FormRequest
             if ($balance && $leaveType && $leaveType->is_paid) {
                 $available = $balance->available_days;
                 if ($totalDays > $available) {
-                    $validator->errors()->add('end_date', "You only have {$available} days available for this leave type.");
+                    $targetUser = \App\Models\User::find($targetUserId);
+                    $userName = $targetUser ? $targetUser->name : 'User';
+                    $validator->errors()->add('end_date', "{$userName} only has {$available} days available for this leave type.");
                 }
             }
 
             // Check for overlapping leaves
-            $overlapping = \App\Models\LeaveRequest::where('user_id', $user->id)
+            $overlapping = \App\Models\LeaveRequest::where('user_id', $targetUserId)
                 ->where('status', 'approved')
                 ->where(function ($query) use ($startDate, $endDate) {
                     $query->whereBetween('start_date', [$startDate, $endDate])
@@ -99,7 +120,9 @@ class StoreLeaveRequestRequest extends FormRequest
                 ->exists();
 
             if ($overlapping) {
-                $validator->errors()->add('start_date', 'You have an overlapping approved leave request.');
+                $targetUser = \App\Models\User::find($targetUserId);
+                $userName = $targetUser ? $targetUser->name : 'User';
+                $validator->errors()->add('start_date', "{$userName} has an overlapping approved leave request.");
             }
         });
     }

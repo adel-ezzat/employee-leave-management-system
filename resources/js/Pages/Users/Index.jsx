@@ -1,11 +1,24 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
+import SectionContainer from '@/Components/SectionContainer';
 import { exportToExcel } from '@/Utils/excelExport';
 import { useState } from 'react';
 
-export default function UsersIndex({ users }) {
+export default function UsersIndex({ users, teams, filters }) {
     const [expandedUsers, setExpandedUsers] = useState(new Set());
+    const [searchFilters, setSearchFilters] = useState(filters || {});
+    
+    const handleFilter = () => {
+        // Remove empty filter values
+        const activeFilters = Object.fromEntries(
+            Object.entries(searchFilters).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+        );
+        
+        router.get(route('users.index'), activeFilters, {
+            preserveState: true,
+        });
+    };
 
     const toggleExpand = (userId) => {
         const newExpanded = new Set(expandedUsers);
@@ -87,9 +100,34 @@ export default function UsersIndex({ users }) {
                         </PrimaryButton>
                     </div>
 
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
-                        <div className="p-6">
-                            <div className="overflow-x-auto">
+                    {/* Filters */}
+                    {teams && teams.length > 0 && (
+                        <SectionContainer>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 justify-between items-center">
+                                <div>
+                                    <select
+                                        value={searchFilters.team_id || ''}
+                                        onChange={(e) => setSearchFilters({ ...searchFilters, team_id: e.target.value })}
+                                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                                    >
+                                        <option value="">All Teams</option>
+                                        {teams.map((team) => (
+                                            <option key={team.id} value={team.id}>
+                                                {team.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <PrimaryButton onClick={handleFilter}>Filter</PrimaryButton>
+                                </div>
+                            </div>
+                        </SectionContainer>
+                    )}
+
+                    {/* Users Table */}
+                    <SectionContainer>
+                        <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                     <thead className="bg-gray-50 dark:bg-gray-700">
                                         <tr>
@@ -262,8 +300,7 @@ export default function UsersIndex({ users }) {
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    </div>
+                    </SectionContainer>
                 </div>
             </div>
         </AuthenticatedLayout>

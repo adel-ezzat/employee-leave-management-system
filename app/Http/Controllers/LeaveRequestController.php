@@ -85,6 +85,17 @@ class LeaveRequestController extends Controller
         $user = $request->user();
         $year = now()->year;
 
+        // Determine target user (for admin/manager to select)
+        $targetUserId = $request->get('user_id', $user->id);
+        
+        // Verify authorization: managers can only view balances for their team members
+        if ($user->isManager() && $targetUserId != $user->id) {
+            $targetUser = \App\Models\User::findOrFail($targetUserId);
+            if ($targetUser->team_id !== $user->team_id) {
+                abort(403, 'You can only view leave balances for members of your team.');
+            }
+        }
+
         // Filter leave types based on user role
         $leaveTypesQuery = \App\Models\LeaveType::where('is_active', true);
         
@@ -104,13 +115,13 @@ class LeaveRequestController extends Controller
                 ];
             });
 
-        // Get user's leave balances
-        $leaveBalances = \App\Models\LeaveBalance::where('user_id', $user->id)
+        // Get target user's leave balances
+        $leaveBalances = \App\Models\LeaveBalance::where('user_id', $targetUserId)
             ->where('year', $year)
             ->get()
             ->keyBy('leave_type_id');
 
-        // Map leave types with balance information
+        // Map leave types with balance information (for current user)
         $leaveTypesWithBalance = $leaveTypes->map(function ($type) use ($leaveBalances) {
             $balance = $leaveBalances->get($type['id']);
             
@@ -133,8 +144,41 @@ class LeaveRequestController extends Controller
             }
         });
 
+        // Get users list for admin and manager to select (excluding current user)
+        $users = null;
+        if ($user->isAdmin()) {
+            $users = \App\Models\User::whereIn('role', ['employee', 'manager', 'admin'])
+                ->where('id', '!=', $user->id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'email', 'role']);
+        } elseif ($user->isManager()) {
+            $users = \App\Models\User::where('team_id', $user->team_id)
+                ->whereIn('role', ['employee', 'manager'])
+                ->where('id', '!=', $user->id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'email', 'role']);
+        }
+
+        $selectedUser = null;
+        if ($targetUserId != $user->id) {
+            $selectedUser = \App\Models\User::find($targetUserId);
+        }
+
         return Inertia::render('LeaveRequests/Create', [
             'leaveTypes' => $leaveTypesWithBalance,
+            'users' => $users,
+            'currentUser' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
+            'selectedUserId' => $targetUserId,
+            'selectedUser' => $selectedUser ? [
+                'id' => $selectedUser->id,
+                'name' => $selectedUser->name,
+                'email' => $selectedUser->email,
+            ] : null,
         ]);
     }
 
@@ -144,13 +188,25 @@ class LeaveRequestController extends Controller
     public function store(StoreLeaveRequestRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $user = $request->user();
+        $currentUser = $request->user();
+        
+        // Determine which user the leave request is for
+        // Admin and manager can select a user, otherwise use current user
+        $targetUserId = $validated['user_id'] ?? $currentUser->id;
+        
+        // Verify authorization: managers can only create requests for their team members
+        if ($currentUser->isManager() && isset($validated['user_id'])) {
+            $targetUser = \App\Models\User::findOrFail($validated['user_id']);
+            if ($targetUser->team_id !== $currentUser->team_id) {
+                abort(403, 'You can only create leave requests for members of your team.');
+            }
+        }
 
         $startDate = Carbon::parse($validated['start_date']);
         $endDate = Carbon::parse($validated['end_date']);
         $totalDays = LeaveRequest::calculateDays($startDate, $endDate);
 
-        DB::transaction(function () use ($validated, $user, $totalDays, $request) {
+        DB::transaction(function () use ($validated, $targetUserId, $totalDays, $request) {
             // Handle document upload
             $documentPath = null;
             if ($request->hasFile('document')) {
@@ -159,7 +215,7 @@ class LeaveRequestController extends Controller
 
             // Create leave request
             $leaveRequest = LeaveRequest::create([
-                'user_id' => $user->id,
+                'user_id' => $targetUserId,
                 'leave_type_id' => $validated['leave_type_id'],
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
@@ -179,7 +235,7 @@ class LeaveRequestController extends Controller
 
                 $balance = LeaveBalance::firstOrCreate(
                     [
-                        'user_id' => $user->id,
+                        'user_id' => $targetUserId,
                         'leave_type_id' => $validated['leave_type_id'],
                         'year' => $year,
                     ],
