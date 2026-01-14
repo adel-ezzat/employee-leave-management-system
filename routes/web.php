@@ -28,7 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('leave-types', App\Http\Controllers\LeaveTypeController::class)
         ->middleware('can:viewAny,App\Models\LeaveType');
 
-    // Users (Admin only)
+    // Users (Admin and Manager)
     Route::resource('users', App\Http\Controllers\UserController::class)
         ->middleware('can:viewAny,App\Models\User');
 

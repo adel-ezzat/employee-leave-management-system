@@ -37,12 +37,6 @@ export default function AuthenticatedLayout({ header, children }) {
                                 {user && user.isAdmin && (
                                     <>
                                         <NavLink
-                                            href={route('users.index')}
-                                            active={route().current('users.*')}
-                                        >
-                                            Users
-                                        </NavLink>
-                                        <NavLink
                                             href={route('teams.index')}
                                             active={route().current('teams.*')}
                                         >
@@ -55,6 +49,14 @@ export default function AuthenticatedLayout({ header, children }) {
                                             Leave Types
                                         </NavLink>
                                     </>
+                                )}
+                                {(user && (user.isAdmin || user.isManager)) && (
+                                    <NavLink
+                                        href={route('users.index')}
+                                        active={route().current('users.*')}
+                                    >
+                                        Users
+                                    </NavLink>
                                 )}
                             </div>
                         </div>
@@ -170,12 +172,6 @@ export default function AuthenticatedLayout({ header, children }) {
                         {user?.isAdmin && (
                             <>
                                 <ResponsiveNavLink
-                                    href={route('users.index')}
-                                    active={route().current('users.*')}
-                                >
-                                    Users
-                                </ResponsiveNavLink>
-                                <ResponsiveNavLink
                                     href={route('teams.index')}
                                     active={route().current('teams.*')}
                                 >
@@ -188,6 +184,14 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Leave Types
                                 </ResponsiveNavLink>
                             </>
+                        )}
+                        {(user?.isAdmin || user?.isManager) && (
+                            <ResponsiveNavLink
+                                href={route('users.index')}
+                                active={route().current('users.*')}
+                            >
+                                Users
+                            </ResponsiveNavLink>
                         )}
                     </div>
 

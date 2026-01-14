@@ -29,14 +29,27 @@ class UserController extends Controller
             ->get();
         
         // Get teams for filter
-        $teams = Team::where('is_active', true)
-            ->orderBy('name')
+        $teamsQuery = Team::where('is_active', true);
+        
+        // If manager, only show their managed teams
+        if (auth()->user()->isManager()) {
+            $managedTeamIds = auth()->user()->managedTeams()->pluck('id');
+            $teamsQuery->whereIn('id', $managedTeamIds);
+        }
+        
+        $teams = $teamsQuery->orderBy('name')
             ->get(['id', 'name']);
         
         // Build query with team filter
         $usersQuery = User::with(['team', 'managedTeams', 'leaveBalances' => function ($query) use ($year) {
             $query->where('year', $year)->with('leaveType');
         }]);
+        
+        // If manager, only show users from their managed teams
+        if (auth()->user()->isManager()) {
+            $managedTeamIds = auth()->user()->managedTeams()->pluck('id');
+            $usersQuery->whereIn('team_id', $managedTeamIds);
+        }
         
         // Apply team filter if provided
         if ($request->has('team_id') && $request->team_id) {
