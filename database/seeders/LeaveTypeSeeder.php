@@ -69,7 +69,7 @@ class LeaveTypeSeeder extends Seeder
                 'max_days_per_year' => null,
                 'requires_medical_document' => false,
                 'has_balance' => false,
-                'visible_to_employees' => true,
+                'visible_to_employees' => false,
                 'is_active' => true,
                 'color' => '#722ED1',
             ],

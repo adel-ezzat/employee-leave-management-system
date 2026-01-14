@@ -4,8 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Team;
-use App\Models\LeaveBalance;
-use App\Models\LeaveType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -59,31 +57,14 @@ class UserSeeder extends Seeder
             ['name' => 'Employee Five', 'email' => 'employee5@example.com', 'team_id' => 1],
         ];
 
-        $year = now()->year;
-        $leaveTypes = LeaveType::where('is_active', true)->get();
-
         foreach ($employees as $employeeData) {
-            $employee = User::create([
+            User::create([
                 'name' => $employeeData['name'],
                 'email' => $employeeData['email'],
                 'password' => Hash::make('password'),
                 'role' => 'employee',
                 'team_id' => $employeeData['team_id'],
             ]);
-
-            // Create leave balances for each employee
-            foreach ($leaveTypes as $leaveType) {
-                $totalDays = $leaveType->max_days_per_year ?? 0;
-                
-                LeaveBalance::create([
-                    'user_id' => $employee->id,
-                    'leave_type_id' => $leaveType->id,
-                    'total_days' => $totalDays,
-                    'used_days' => 0,
-                    'pending_days' => 0,
-                    'year' => $year,
-                ]);
-            }
         }
     }
 }

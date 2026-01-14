@@ -19,7 +19,6 @@ class DatabaseSeeder extends Seeder
             LeaveTypeSeeder::class,
             TeamSeeder::class,
             UserSeeder::class,
-            LeaveRequestSeeder::class,
         ]);
     }
 }

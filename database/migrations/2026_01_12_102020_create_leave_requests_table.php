@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('leave_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('team_id')->constrained('teams')->onDelete('cascade');
             $table->foreignId('leave_type_id')->constrained('leave_types')->onDelete('restrict');
             $table->date('start_date');
             $table->date('end_date');
             $table->integer('total_days');
             $table->text('reason')->nullable();
+            $table->string('document')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
             $table->text('rejection_reason')->nullable();
@@ -27,7 +27,6 @@ return new class extends Migration
             $table->timestamps();
             
             $table->index(['user_id', 'status']);
-            $table->index(['team_id', 'status']);
             $table->index(['start_date', 'end_date']);
         });
     }
