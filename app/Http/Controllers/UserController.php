@@ -23,9 +23,59 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
         
-        $users = User::with(['team', 'managedTeams'])
+        $year = now()->year;
+        $leaveTypes = LeaveType::where('is_active', true)->get();
+        
+        $users = User::with(['team', 'managedTeams', 'leaveBalances' => function ($query) use ($year) {
+            $query->where('year', $year)->with('leaveType');
+        }])
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($user) use ($leaveTypes, $year) {
+                $balances = $user->leaveBalances->keyBy('leave_type_id');
+                
+                $leaveBalances = $leaveTypes->map(function ($leaveType) use ($balances) {
+                    $balance = $balances->get($leaveType->id);
+                    
+                    if ($balance) {
+                        return [
+                            'id' => $balance->id,
+                            'leave_type_id' => $leaveType->id,
+                            'leave_type_name' => $leaveType->name,
+                            'leave_type_color' => $leaveType->color,
+                            'total_days' => $balance->total_days,
+                            'used_days' => $balance->used_days,
+                            'pending_days' => $balance->pending_days,
+                            'available_days' => $balance->available_days,
+                        ];
+                    } else {
+                        // No balance record exists, show default values
+                        $defaultTotalDays = $leaveType->max_days_per_year ?? 0;
+                        return [
+                            'id' => null,
+                            'leave_type_id' => $leaveType->id,
+                            'leave_type_name' => $leaveType->name,
+                            'leave_type_color' => $leaveType->color,
+                            'total_days' => $defaultTotalDays,
+                            'used_days' => 0,
+                            'pending_days' => 0,
+                            'available_days' => $defaultTotalDays,
+                        ];
+                    }
+                });
+                
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'team' => $user->team ? [
+                        'id' => $user->team->id,
+                        'name' => $user->team->name,
+                    ] : null,
+                    'leave_balances' => $leaveBalances,
+                ];
+            });
 
         return Inertia::render('Users/Index', [
             'users' => $users,
@@ -61,8 +111,8 @@ class UserController extends Controller
             'team_id' => $validated['team_id'] ?? null,
         ]);
 
-        // Create leave balances for employees
-        if ($user->isEmployee()) {
+        // Create leave balances for employees, managers, and admins
+        if ($user->isEmployee() || $user->isManager() || $user->isAdmin()) {
             $year = now()->year;
             $leaveTypes = LeaveType::where('is_active', true)->get();
             
@@ -131,8 +181,8 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        // If role changed to employee and no leave balances exist, create them
-        if ($user->isEmployee() && $user->leaveBalances()->count() === 0) {
+        // If role changed to employee, manager, or admin and no leave balances exist, create them
+        if (($user->isEmployee() || $user->isManager() || $user->isAdmin()) && $user->leaveBalances()->count() === 0) {
             $year = now()->year;
             $leaveTypes = LeaveType::where('is_active', true)->get();
             

@@ -140,8 +140,8 @@ class LeaveBalanceController extends Controller
             'total_days' => 'required|integer|min:0',
         ]);
 
-        // Update all users' balances for this leave type
-        $users = User::where('role', 'employee')->get();
+        // Update all users' balances for this leave type (employees, managers, and admins)
+        $users = User::whereIn('role', ['employee', 'manager', 'admin'])->get();
         $year = now()->year;
 
         foreach ($users as $user) {
