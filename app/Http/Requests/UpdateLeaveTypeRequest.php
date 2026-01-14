@@ -32,6 +32,8 @@ class UpdateLeaveTypeRequest extends FormRequest
             'is_paid' => ['sometimes', 'boolean'],
             'max_days_per_year' => ['nullable', 'integer', 'min:1'],
             'requires_medical_document' => ['sometimes', 'boolean'],
+            'has_balance' => ['sometimes', 'boolean'],
+            'visible_to_employees' => ['sometimes', 'boolean'],
             'color' => ['nullable', 'string', 'max:7'],
             'is_active' => ['sometimes', 'boolean'],
         ];

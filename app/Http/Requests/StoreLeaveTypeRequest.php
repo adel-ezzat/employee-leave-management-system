@@ -28,6 +28,8 @@ class StoreLeaveTypeRequest extends FormRequest
             'is_paid' => ['boolean'],
             'max_days_per_year' => ['nullable', 'integer', 'min:1'],
             'requires_medical_document' => ['boolean'],
+            'has_balance' => ['boolean'],
+            'visible_to_employees' => ['boolean'],
             'color' => ['nullable', 'string', 'max:7'],
         ];
     }

@@ -24,7 +24,9 @@ class UserController extends Controller
         $this->authorize('viewAny', User::class);
         
         $year = now()->year;
-        $leaveTypes = LeaveType::where('is_active', true)->get();
+        $leaveTypes = LeaveType::where('is_active', true)
+            ->where('has_balance', true)
+            ->get();
         
         $users = User::with(['team', 'managedTeams', 'leaveBalances' => function ($query) use ($year) {
             $query->where('year', $year)->with('leaveType');
@@ -111,10 +113,12 @@ class UserController extends Controller
             'team_id' => $validated['team_id'] ?? null,
         ]);
 
-        // Create leave balances for employees, managers, and admins
+        // Create leave balances for employees, managers, and admins (only for leave types that have balance)
         if ($user->isEmployee() || $user->isManager() || $user->isAdmin()) {
             $year = now()->year;
-            $leaveTypes = LeaveType::where('is_active', true)->get();
+            $leaveTypes = LeaveType::where('is_active', true)
+                ->where('has_balance', true)
+                ->get();
             
             foreach ($leaveTypes as $leaveType) {
                 $totalDays = $leaveType->max_days_per_year ?? 0;
@@ -181,10 +185,12 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        // If role changed to employee, manager, or admin and no leave balances exist, create them
+        // If role changed to employee, manager, or admin and no leave balances exist, create them (only for leave types that have balance)
         if (($user->isEmployee() || $user->isManager() || $user->isAdmin()) && $user->leaveBalances()->count() === 0) {
             $year = now()->year;
-            $leaveTypes = LeaveType::where('is_active', true)->get();
+            $leaveTypes = LeaveType::where('is_active', true)
+                ->where('has_balance', true)
+                ->get();
             
             foreach ($leaveTypes as $leaveType) {
                 $totalDays = $leaveType->max_days_per_year ?? 0;

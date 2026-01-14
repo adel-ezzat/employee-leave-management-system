@@ -52,8 +52,10 @@ class DashboardController extends Controller
             ->latest()
             ->get();
 
-        // Get all active leave types
-        $leaveTypes = \App\Models\LeaveType::where('is_active', true)->get();
+        // Get all active leave types that have balance
+        $leaveTypes = \App\Models\LeaveType::where('is_active', true)
+            ->where('has_balance', true)
+            ->get();
         $year = now()->year;
 
         // Get existing balances
@@ -143,8 +145,10 @@ class DashboardController extends Controller
             ->orWhereBetween('end_date', [$nextWeekStart, $nextWeekEnd])
             ->get();
 
-        // Get all active leave types
-        $leaveTypes = \App\Models\LeaveType::where('is_active', true)->get();
+        // Get all active leave types that have balance
+        $leaveTypes = \App\Models\LeaveType::where('is_active', true)
+            ->where('has_balance', true)
+            ->get();
         $year = now()->year;
 
         // Get existing balances
@@ -223,8 +227,10 @@ class DashboardController extends Controller
             ->latest()
             ->get();
 
-        // Get all active leave types
-        $leaveTypes = \App\Models\LeaveType::where('is_active', true)->get();
+        // Get all active leave types that have balance
+        $leaveTypes = \App\Models\LeaveType::where('is_active', true)
+            ->where('has_balance', true)
+            ->get();
         $year = now()->year;
 
         // Get existing balances

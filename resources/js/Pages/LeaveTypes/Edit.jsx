@@ -14,6 +14,8 @@ export default function EditLeaveType({ leaveType }) {
         is_paid: leaveType.is_paid ?? true,
         max_days_per_year: leaveType.max_days_per_year || '',
         requires_medical_document: leaveType.requires_medical_document ?? false,
+        has_balance: leaveType.has_balance ?? true,
+        visible_to_employees: leaveType.visible_to_employees ?? true,
         color: leaveType.color || '#1677FF',
         is_active: leaveType.is_active ?? true,
     });
@@ -96,19 +98,6 @@ export default function EditLeaveType({ leaveType }) {
                                 </div>
 
                                 <div className="mb-4">
-                                    <InputLabel htmlFor="max_days_per_year" value="Max Days Per Year (Optional)" />
-                                    <TextInput
-                                        id="max_days_per_year"
-                                        type="number"
-                                        value={data.max_days_per_year}
-                                        onChange={(e) => setData('max_days_per_year', e.target.value ? parseInt(e.target.value) : null)}
-                                        className="mt-1 block w-full"
-                                        min="1"
-                                    />
-                                    <InputError message={errors.max_days_per_year} className="mt-2" />
-                                </div>
-
-                                <div className="mb-4">
                                     <div className="flex items-center">
                                         <Checkbox
                                             name="requires_medical_document"
@@ -118,6 +107,45 @@ export default function EditLeaveType({ leaveType }) {
                                         <InputLabel htmlFor="requires_medical_document" value="Requires Medical Document" className="ml-2" />
                                     </div>
                                     <InputError message={errors.requires_medical_document} className="mt-2" />
+                                </div>
+
+                                <div className="mb-4">
+                                    <div className="flex items-center">
+                                        <Checkbox
+                                            name="has_balance"
+                                            checked={data.has_balance}
+                                            onChange={(e) => setData('has_balance', e.target.checked)}
+                                        />
+                                        <InputLabel htmlFor="has_balance" value="Has Balance" className="ml-2" />
+                                    </div>
+                                    <InputError message={errors.has_balance} className="mt-2" />
+                                </div>
+
+                                {data.has_balance && (
+                                    <div className="mb-4">
+                                        <InputLabel htmlFor="max_days_per_year" value="Max Days Per Year (Optional)" />
+                                        <TextInput
+                                            id="max_days_per_year"
+                                            type="number"
+                                            value={data.max_days_per_year}
+                                            onChange={(e) => setData('max_days_per_year', e.target.value ? parseInt(e.target.value) : null)}
+                                            className="mt-1 block w-full"
+                                            min="1"
+                                        />
+                                        <InputError message={errors.max_days_per_year} className="mt-2" />
+                                    </div>
+                                )}
+
+                                <div className="mb-4">
+                                    <div className="flex items-center">
+                                        <Checkbox
+                                            name="visible_to_employees"
+                                            checked={data.visible_to_employees}
+                                            onChange={(e) => setData('visible_to_employees', e.target.checked)}
+                                        />
+                                        <InputLabel htmlFor="visible_to_employees" value="Visible to Employees" className="ml-2" />
+                                    </div>
+                                    <InputError message={errors.visible_to_employees} className="mt-2" />
                                 </div>
 
                                 <div className="mb-4">

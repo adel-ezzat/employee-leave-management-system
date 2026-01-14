@@ -47,9 +47,10 @@ class LeaveBalanceController extends Controller
                 ];
             });
 
-        // Get leave types that don't have balances yet
+        // Get leave types that don't have balances yet (only those with has_balance = true)
         $existingLeaveTypeIds = $balances->pluck('leave_type_id')->filter()->toArray();
         $availableLeaveTypes = LeaveType::where('is_active', true)
+            ->where('has_balance', true)
             ->whereNotIn('id', $existingLeaveTypeIds)
             ->get()
             ->map(function ($leaveType) {
@@ -141,6 +142,12 @@ class LeaveBalanceController extends Controller
         ]);
 
         // Update all users' balances for this leave type (employees, managers, and admins)
+        // Only update if the leave type has balance
+        $leaveType = LeaveType::find($request->leave_type_id);
+        if (!$leaveType || !$leaveType->has_balance) {
+            return redirect()->back()->with('error', 'Cannot set global limits for leave types that do not have balance.');
+        }
+        
         $users = User::whereIn('role', ['employee', 'manager', 'admin'])->get();
         $year = now()->year;
 

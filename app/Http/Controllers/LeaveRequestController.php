@@ -85,13 +85,22 @@ class LeaveRequestController extends Controller
         $user = $request->user();
         $year = now()->year;
 
-        $leaveTypes = \App\Models\LeaveType::where('is_active', true)->get()
+        // Filter leave types based on user role
+        $leaveTypesQuery = \App\Models\LeaveType::where('is_active', true);
+        
+        // Employees can only see leave types that are visible to them
+        if ($user->isEmployee()) {
+            $leaveTypesQuery->where('visible_to_employees', true);
+        }
+        
+        $leaveTypes = $leaveTypesQuery->get()
             ->map(function ($type) {
                 return [
                     'id' => $type->id,
                     'name' => $type->name,
                     'requires_medical_document' => $type->requires_medical_document,
                     'max_days_per_year' => $type->max_days_per_year,
+                    'has_balance' => $type->has_balance,
                 ];
             });
 
@@ -160,21 +169,25 @@ class LeaveRequestController extends Controller
                 'status' => 'pending',
             ]);
 
-            // Update pending days in leave balance
+            // Update pending days in leave balance (only if leave type has balance)
             $year = now()->year;
             $leaveType = \App\Models\LeaveType::find($validated['leave_type_id']);
-            $defaultTotalDays = $leaveType ? ($leaveType->max_days_per_year ?? 0) : 0;
+            
+            // Only update balance if the leave type has balance
+            if ($leaveType && $leaveType->has_balance) {
+                $defaultTotalDays = $leaveType->max_days_per_year ?? 0;
 
-            $balance = LeaveBalance::firstOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'leave_type_id' => $validated['leave_type_id'],
-                    'year' => $year,
-                ],
-                ['total_days' => $defaultTotalDays, 'used_days' => 0, 'pending_days' => 0]
-            );
+                $balance = LeaveBalance::firstOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'leave_type_id' => $validated['leave_type_id'],
+                        'year' => $year,
+                    ],
+                    ['total_days' => $defaultTotalDays, 'used_days' => 0, 'pending_days' => 0]
+                );
 
-            $balance->increment('pending_days', $totalDays);
+                $balance->increment('pending_days', $totalDays);
+            }
         });
 
         return redirect()->route('leave-requests.index')
@@ -229,7 +242,15 @@ class LeaveRequestController extends Controller
     {
         $this->authorize('update', $leaveRequest);
 
-        $leaveTypes = \App\Models\LeaveType::where('is_active', true)->get();
+        // Filter leave types based on user role
+        $leaveTypesQuery = \App\Models\LeaveType::where('is_active', true);
+        
+        // Employees can only see leave types that are visible to them
+        if ($user->isEmployee()) {
+            $leaveTypesQuery->where('visible_to_employees', true);
+        }
+        
+        $leaveTypes = $leaveTypesQuery->get();
 
         return Inertia::render('LeaveRequests/Edit', [
             'leaveRequest' => $leaveRequest,
@@ -266,14 +287,17 @@ class LeaveRequestController extends Controller
         $this->authorize('delete', $leaveRequest);
 
         DB::transaction(function () use ($leaveRequest) {
-            // Decrement pending days
-            $balance = LeaveBalance::where('user_id', $leaveRequest->user_id)
-                ->where('leave_type_id', $leaveRequest->leave_type_id)
-                ->where('year', now()->year)
-                ->first();
+            // Decrement pending days (only if leave type has balance)
+            $leaveType = $leaveRequest->leaveType;
+            if ($leaveType && $leaveType->has_balance) {
+                $balance = LeaveBalance::where('user_id', $leaveRequest->user_id)
+                    ->where('leave_type_id', $leaveRequest->leave_type_id)
+                    ->where('year', now()->year)
+                    ->first();
 
-            if ($balance) {
-                $balance->decrement('pending_days', $leaveRequest->total_days);
+                if ($balance) {
+                    $balance->decrement('pending_days', $leaveRequest->total_days);
+                }
             }
 
             $leaveRequest->delete();
@@ -300,18 +324,22 @@ class LeaveRequestController extends Controller
                 'rejection_reason' => $validated['rejection_reason'] ?? null,
             ]);
 
-            $balance = LeaveBalance::where('user_id', $leaveRequest->user_id)
-                ->where('leave_type_id', $leaveRequest->leave_type_id)
-                ->where('year', now()->year)
-                ->first();
+            // Only update balance if the leave type has balance
+            $leaveType = $leaveRequest->leaveType;
+            if ($leaveType && $leaveType->has_balance) {
+                $balance = LeaveBalance::where('user_id', $leaveRequest->user_id)
+                    ->where('leave_type_id', $leaveRequest->leave_type_id)
+                    ->where('year', now()->year)
+                    ->first();
 
-            if ($balance) {
-                // Decrement pending days
-                $balance->decrement('pending_days', $leaveRequest->total_days);
+                if ($balance) {
+                    // Decrement pending days
+                    $balance->decrement('pending_days', $leaveRequest->total_days);
 
-                // If approved, increment used days
-                if ($validated['status'] === 'approved') {
-                    $balance->increment('used_days', $leaveRequest->total_days);
+                    // If approved, increment used days
+                    if ($validated['status'] === 'approved') {
+                        $balance->increment('used_days', $leaveRequest->total_days);
+                    }
                 }
             }
         });

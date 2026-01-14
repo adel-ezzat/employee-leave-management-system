@@ -14,6 +14,8 @@ class LeaveType extends Model
         'is_paid',
         'max_days_per_year',
         'requires_medical_document',
+        'has_balance',
+        'visible_to_employees',
         'is_active',
         'color',
     ];
@@ -23,6 +25,8 @@ class LeaveType extends Model
         return [
             'is_paid' => 'boolean',
             'requires_medical_document' => 'boolean',
+            'has_balance' => 'boolean',
+            'visible_to_employees' => 'boolean',
             'is_active' => 'boolean',
             'max_days_per_year' => 'integer',
         ];
