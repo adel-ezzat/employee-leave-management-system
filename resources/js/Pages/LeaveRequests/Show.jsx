@@ -108,7 +108,7 @@ export default function ShowLeaveRequest({ leaveRequest, leaveBalance }) {
                                     </div>
                                 </div>
 
-                                {leaveBalance && (
+                                {leaveBalance && leaveRequest.leave_type?.has_balance && (
                                     <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                                             Leave Balance Information

@@ -259,30 +259,33 @@ class LeaveRequestController extends Controller
 
         $leaveRequest->load(['user.team', 'leaveType', 'approver']);
 
-        // Get leave balance for this user and leave type
-        $year = now()->year;
-        $leaveBalance = LeaveBalance::where('user_id', $leaveRequest->user_id)
-            ->where('leave_type_id', $leaveRequest->leave_type_id)
-            ->where('year', $year)
-            ->first();
-
+        // Only get leave balance if the leave type has balance tracking
         $balanceData = null;
-        if ($leaveBalance) {
-            $balanceData = [
-                'total_days' => $leaveBalance->total_days,
-                'used_days' => $leaveBalance->used_days,
-                'pending_days' => $leaveBalance->pending_days,
-                'available_days' => $leaveBalance->available_days,
-            ];
-        } else {
-            // If no balance exists, use default from leave type
-            $defaultTotalDays = $leaveRequest->leaveType->max_days_per_year ?? 0;
-            $balanceData = [
-                'total_days' => $defaultTotalDays,
-                'used_days' => 0,
-                'pending_days' => 0,
-                'available_days' => $defaultTotalDays,
-            ];
+        if ($leaveRequest->leaveType->has_balance) {
+            // Get leave balance for this user and leave type
+            $year = now()->year;
+            $leaveBalance = LeaveBalance::where('user_id', $leaveRequest->user_id)
+                ->where('leave_type_id', $leaveRequest->leave_type_id)
+                ->where('year', $year)
+                ->first();
+
+            if ($leaveBalance) {
+                $balanceData = [
+                    'total_days' => $leaveBalance->total_days,
+                    'used_days' => $leaveBalance->used_days,
+                    'pending_days' => $leaveBalance->pending_days,
+                    'available_days' => $leaveBalance->available_days,
+                ];
+            } else {
+                // If no balance exists, use default from leave type
+                $defaultTotalDays = $leaveRequest->leaveType->max_days_per_year ?? 0;
+                $balanceData = [
+                    'total_days' => $defaultTotalDays,
+                    'used_days' => 0,
+                    'pending_days' => 0,
+                    'available_days' => $defaultTotalDays,
+                ];
+            }
         }
 
         return Inertia::render('LeaveRequests/Show', [
